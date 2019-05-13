@@ -26,7 +26,7 @@ __global__ void convolution(const VTYPE *neurons_i, const VTYPE *synapses, VTYPE
 int main(const int argc, const char** argv) {
   //Setting parameter values
   const int Kx = 3, Ky = 3;
-  const int Nn = 64, Ni = 64;
+  const int Nn = 128, Ni = 128;
   const int Nx = 224, Ny = 224;
   //const int Sx = 1, Sy = 1;
   //int Tnn = 32, Tn = 16, Ti = 16, Ty = 8, Tx = 8;
@@ -115,8 +115,8 @@ int main(const int argc, const char** argv) {
   begin_roi();
 
   // — Original code — (excluding nn, ii loops)
-  dim3 dimBlock(64);
-  dim3 dimGrid(Nx,Ny,64);
+  dim3 dimBlock(Ni);
+  dim3 dimGrid(Nx,Ny,Nn);
   convolution<<<dimGrid,dimBlock>>>(d_neurons_i,d_synapses,d_neurons_n,Ny,Nx,Ni,Nn,Ky,Kx,NYSCL,NXSCL,NYPAD,NXPAD);
   cudaDeviceSynchronize();
   end_roi();

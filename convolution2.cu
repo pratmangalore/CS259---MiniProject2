@@ -10,15 +10,15 @@ using namespace std;
 
 __global__ void convolution(const VTYPE *neurons_i, const VTYPE *synapses, VTYPE *neurons_n, const int Ny,
                                const int Nx, const int Ni, const int Nn, const int Ky, const int Kx,
-                               const int NYSCL, const int NXSCL, const int NYPAD, const int NXPAD) {
+                               const int NYSCL, const int NXSCL, const int NYPAD, const int NXPAD, int Ti) {
   int x = blockIdx.x;
   int y = blockIdx.y;
   int tn = blockIdx.z;
   int c = threadIdx.x;
-
   for(int ky = 0; ky < Ky; ky++)
     for(int kx = 0; kx < Kx; kx++)
-      neurons_n[y * NXSCL * Nn + x * Nn + tn] += neurons_i[(y+ky) * NXPAD * Ni + (x+kx)*Ni + c] * synapses[ky * Kx * Nn * Ni + kx * Nn * Ni + tn * Ni + c];
+      for(int i = Ti*c; i < Ti*c + Ti; i++)
+        neurons_n[y * NXSCL * Nn + x * Nn + tn] += neurons_i[(y+ky) * NXPAD * Ni + (x+kx)*Ni + c] * synapses[ky * Kx * Nn * Ni + kx * Nn * Ni + tn * Ni + i];
   __syncthreads();
   neurons_n[y * NXSCL * Nn + x * Nn + tn] = neurons_n[y * NXSCL * Nn + x * Nn + tn]? neurons_n[y * NXSCL * Nn + x * Nn + tn] : neurons_n[y * NXSCL * Nn + x * Nn + tn]/4;
 }
@@ -30,11 +30,11 @@ int main(const int argc, const char** argv) {
   const int Nx = 14, Ny = 14;
   //const int Sx = 1, Sy = 1;
   //int Tnn = 32, Tn = 16, Ti = 16, Ty = 8, Tx = 8;
-  const int NYPAD = 16, NXPAD = 16;
-  const int NYSCL = 14, NXSCL = 14;
+  const int NYPAD = Ny + Ky - 1, NXPAD = Nx + Kx - 1;
+  const int NYSCL = Ny, NXSCL = Nx;
 
   cudaError_t err = cudaSuccess;
-
+  //cout << sizeof(VTYPE);
   cout << "Allocating space for host and device matrix/vectors\n";
 
   //Allocating host memory for input layer
@@ -115,9 +115,10 @@ int main(const int argc, const char** argv) {
   begin_roi();
 
   // — Original code — (excluding nn, ii loops)
-  dim3 dimBlock(Ni);
+  dim3 dimBlock(Ni);  //Max = 1024
   dim3 dimGrid(Nx,Ny,Nn);
-  convolution<<<dimGrid,dimBlock>>>(d_neurons_i,d_synapses,d_neurons_n,Ny,Nx,Ni,Nn,Ky,Kx,NYSCL,NXSCL,NYPAD,NXPAD);
+  int Ti = Ni/dimBlock.x;
+  convolution<<<dimGrid,dimBlock>>>(d_neurons_i,d_synapses,d_neurons_n,Ny,Nx,Ni,Nn,Ky,Kx,NYSCL,NXSCL,NYPAD,NXPAD,Ti);
   cudaDeviceSynchronize();
   end_roi();
 
