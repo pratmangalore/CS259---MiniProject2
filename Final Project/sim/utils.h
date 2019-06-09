@@ -13,7 +13,6 @@
 
 using namespace std;
 
-#define UINT16      unsigned short
 #define UINT32      unsigned int
 #define INT32       int
 #define UINT64      unsigned long long

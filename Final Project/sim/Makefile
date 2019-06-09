@@ -43,11 +43,11 @@ OBJDIR := $(CBP_BASE)/bin
 SRC    := $(CBP_BASE)/sim
 VPATH  := $(SRC)
 
-LDLIBS   += -lboost_iostreams -lboost_python -lpython3.6m
+LDLIBS   += -lboost_iostreams
 
 LDFLAGS += -L$(BOOST)/lib -Wl,-rpath $(BOOST)/lib
 
-CPPFLAGS := -g -O3 -Wall -std=c++11 -Wextra -Winline -Winit-self -Wno-sequence-point\
+CPPFLAGS := -O3 -Wall -std=c++11 -Wextra -Winline -Winit-self -Wno-sequence-point\
            -Wno-unused-function -Wno-inline -fPIC -W -Wcast-qual -Wpointer-arith -Woverloaded-virtual\
            -I$(CBP_BASE) -I/usr/include -I/user/include/boost/ -I/usr/include/boost/iostreams/ -I/usr/include/boost/iostreams/device/
 
